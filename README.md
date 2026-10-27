@@ -2,6 +2,16 @@
 
 Gerenciador de arquivos de dois painéis, inspirado no Double Commander (Electron + JavaScript).
 
+## Capturas de tela
+
+Dois painéis, com a visualização em detalhes à esquerda e em ícones com miniaturas à direita:
+
+![Dois painéis: detalhes e ícones com miniaturas](docs/screenshot-principal.png)
+
+Até quatro painéis (aqui, a grade 2×2), cada um com suas abas e seu modo de visualização:
+
+![Grade 2×2 com quatro painéis](docs/screenshot-grade.png)
+
 ## Download (sem instalar nada)
 
 Na página de [Releases](https://github.com/Thierry-BR39/gerenciador-de-arquivos/releases) baixe o `.zip`, extraia e abra
