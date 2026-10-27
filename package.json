@@ -8,10 +8,16 @@
     "icon": "node scripts/make-icon.js",
     "package": "node scripts/package.js"
   },
-  "license": "UNLICENSED",
+  "license": "MIT",
   "devDependencies": {
     "@electron/packager": "^20.3.0",
     "electron": "^45.0.0"
   },
-  "productName": "Gerenciador de Arquivos"
+  "productName": "Gerenciador de Arquivos",
+  "author": "Lucas Dias",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Thierry-BR39/gerenciador-de-arquivos.git"
+  },
+  "homepage": "https://github.com/Thierry-BR39/gerenciador-de-arquivos#readme"
 }

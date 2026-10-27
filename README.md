@@ -2,6 +2,12 @@
 
 Gerenciador de arquivos de dois painéis, inspirado no Double Commander (Electron + JavaScript).
 
+## Download (sem instalar nada)
+
+Na página de [Releases](https://github.com/Thierry-BR39/gerenciador-de-arquivos/releases) baixe o `.zip`, extraia e abra
+`Gerenciador de Arquivos.exe`. O programa não é assinado digitalmente, então o Windows SmartScreen pode avisar
+("Windows protegeu o computador"): clique em **Mais informações → Executar assim mesmo**.
+
 ## Executar
 
 Pelo atalho **Gerenciador de Arquivos** (Área de Trabalho ou esta pasta), ou em modo de desenvolvimento:
@@ -10,6 +16,11 @@ Pelo atalho **Gerenciador de Arquivos** (Área de Trabalho ou esta pasta), ou em
 npm install
 npm start
 ```
+
+Requisitos: Windows, [Node.js](https://nodejs.org) e internet. No primeiro `npm start` o Electron baixa o seu binário
+(cerca de 250 MB; aparece "Downloading Electron binary…"). Clone o projeto em uma pasta de caminho curto
+(por exemplo `C:\Projetos`): caminhos acima de ~260 caracteres fazem o Electron falhar com
+"Error loading V8 startup snapshot file".
 
 ## Gerar o executável e o atalho
 
@@ -144,3 +155,7 @@ Favoritos, comparação de pastas, renomeação por substituição/numeração, 
 Interface em quatro cores (variáveis `--c-*` no topo de `src/renderer/styles.css`; o resto é derivado delas):
 `#111111` (fundo e listas, ~50%) · `#242424` (barras, cabeçalhos, diálogos, ~30%) · `#F5F5F5` (texto, ~15%) ·
 `#FF6A00` (destaques: painel ativo, cursor, seleção, botão principal, ~5%). Alertas e ações destrutivas também usam o laranja.
+
+## Licença
+
+[MIT](LICENSE) © 2026 Lucas Dias.
