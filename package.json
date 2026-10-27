@@ -1,0 +1,17 @@
+{
+  "name": "gerenciador-de-arquivos",
+  "version": "0.1.0",
+  "description": "Gerenciador de arquivos de dois painéis inspirado no Double Commander",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "electron .",
+    "icon": "node scripts/make-icon.js",
+    "package": "node scripts/package.js"
+  },
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "@electron/packager": "^20.3.0",
+    "electron": "^45.0.0"
+  },
+  "productName": "Gerenciador de Arquivos"
+}

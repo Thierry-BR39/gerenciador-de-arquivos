@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Gerenciador de Arquivos</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="toolbar">
+    <button data-act="newtab" title="Nova aba no painel ativo (Ctrl+T)">＋ Nova aba</button>
+    <button data-act="singleclick" title="Abrir pastas com um único clique">☐ Clique único</button>
+    <button data-act="refresh" title="Atualizar (Ctrl+R)">⟳ Atualizar</button>
+    <button data-act="hidden" title="Mostrar/ocultar ocultos (Ctrl+H)">👁 Ocultos</button>
+    <button data-act="swap" title="Trocar painéis (Ctrl+U)">⇄ Trocar</button>
+    <button data-act="clipcopy" title="Copiar (Ctrl+C)">⧉ Copiar</button>
+    <button data-act="clipcut" title="Recortar (Ctrl+X)">✂ Recortar</button>
+    <button data-act="clippaste" title="Colar (Ctrl+V)">📋 Colar</button>
+    <button data-act="multirename" title="Renomeação em massa (Ctrl+M)">✎ Renomear em massa</button>
+    <button data-act="mirror" title="Painel oposto = este (Alt+O)">⇉ Espelhar</button>
+    <button data-act="filter" title="Filtrar a pasta atual (Ctrl+F)">⌕ Filtrar</button>
+    <button data-act="searchall" title="Buscar em todas as unidades (Ctrl+Shift+F)">🔍 Buscar em tudo</button>
+    <span class="spacer"></span>
+    <div id="views" title="Modo de exibição dos arquivos"></div>
+    <div id="layouts" title="Disposição dos painéis"></div>
+    <button data-act="help" title="Atalhos (F1)">? Atalhos</button>
+  </div>
+
+  <div id="panels"></div>
+
+  <template id="panel-template">
+    <section class="panel">
+      <div class="tabs"></div>
+      <div class="drives"></div>
+      <input class="pathbar" spellcheck="false" />
+      <input class="filterbar" spellcheck="false" placeholder="Filtrar nesta pasta… (Esc limpa)" hidden />
+      <div class="colheads">
+        <div data-key="name" class="c-name">Nome</div>
+        <div data-key="ext" class="c-ext">Ext</div>
+        <div data-key="size" class="c-size">Tamanho</div>
+        <div data-key="mtime" class="c-date">Data</div>
+        <div class="c-attr">Atr</div>
+      </div>
+      <div class="list" tabindex="0"></div>
+      <div class="status"></div>
+    </section>
+  </template>
+
+  <div id="message"></div>
+
+  <div id="fkeys">
+    <button data-act="view"><b>F3</b> Ver</button>
+    <button data-act="edit"><b>F4</b> Editar</button>
+    <button data-act="copy"><b>F5</b> Copiar</button>
+    <button data-act="move"><b>F6</b> Mover</button>
+    <button data-act="mkdir" title="Ctrl+N"><b>F7</b> Nova pasta</button>
+    <button data-act="delete"><b>F8</b> Excluir</button>
+    <button data-act="rename"><b>F2</b> Renomear</button>
+    <button data-act="search"><b>Alt+F7</b> Buscar</button>
+  </div>
+
+  <div id="overlay" hidden>
+    <div id="dialog" role="dialog" aria-modal="true">
+      <h3 id="dlg-title"></h3>
+      <div id="dlg-body"></div>
+      <div id="dlg-buttons"></div>
+    </div>
+  </div>
+
+  <script src="renderer.js"></script>
+</body>
+</html>
