@@ -199,6 +199,7 @@ ipcMain.handle('fs:drives', async () => (process.platform === 'win32' ? drivesLi
 ipcMain.handle('fs:places', () => ({
   home: os.homedir(),
   desktop: app.getPath('desktop'), // respeita a Área de Trabalho redirecionada para o OneDrive
+  downloads: app.getPath('downloads'),
 }));
 
 // Capacidade e espaço livre de cada unidade (null quando a unidade não está pronta, ex.: leitor vazio).

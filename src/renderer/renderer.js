@@ -439,7 +439,8 @@ class Panel {
     this.sortKey = 'name';
     this.sortDir = 1;
     this.showHidden = false;
-    this.history = [];
+    this.history = []; // pastas anteriores (Alt+←)
+    this.forward = []; // pastas à frente, depois de voltar (Alt+→)
     this.rowHeight = 22;
     this.view = 'details'; // 'details' | 'medium' | 'large' (ícones/miniaturas)
     this.io = null; // IntersectionObserver das miniaturas
@@ -574,6 +575,7 @@ class Panel {
       this.tabs = saved.map((t) => ({
         path: t.path,
         history: [],
+        forward: [],
         sortKey: t.sortKey || 'name',
         sortDir: t.sortDir === -1 ? -1 : 1,
         showHidden: !!t.showHidden,
@@ -600,6 +602,7 @@ class Panel {
     this.drivesEl.replaceChildren();
     const shortcuts = [
       ['🖥 Área de Trabalho', this.places.desktop],
+      ['⬇ Downloads', this.places.downloads],
       ['💻 ' + PC_LABEL, PC],
     ];
     for (const [label, target] of shortcuts) {
@@ -644,7 +647,10 @@ class Panel {
       this.pathEl.value = displayPath(this.path);
       return false;
     }
-    if (pushHistory && this.path) this.history.push(this.path);
+    if (pushHistory && this.path) {
+      this.history.push(this.path);
+      this.forward = []; // navegar para uma pasta nova descarta o "avançar"
+    }
     this.path = target;
     this.raw = res.entries;
     this.filterEl.value = ''; // o filtro vale só para a pasta em que foi aberto
@@ -671,6 +677,7 @@ class Panel {
     this.tabs[this.tabIdx] = {
       path: this.path,
       history: this.history,
+      forward: this.forward,
       sortKey: this.sortKey,
       sortDir: this.sortDir,
       showHidden: this.showHidden,
@@ -731,9 +738,10 @@ class Panel {
   // ou já em `path` quando informado. Não há limite de abas.
   async newTab(path) {
     this.saveTab();
-    this.tabs.splice(this.tabIdx + 1, 0, { ...this.tabs[this.tabIdx], history: [] });
+    this.tabs.splice(this.tabIdx + 1, 0, { ...this.tabs[this.tabIdx], history: [], forward: [] });
     this.tabIdx++;
     this.history = [];
+    this.forward = [];
     if (path && path !== this.path) await this.go(path, false);
     this.renderTabs();
     this.listEl.focus();
@@ -756,6 +764,7 @@ class Panel {
     this.applyViewClass();
     if (active === this) updateViewPicker();
     this.history = t.history;
+    this.forward = t.forward || [];
     this.path = '';
     // se a pasta da aba não existir mais, sobe até uma que exista
     let target = t.path;
@@ -947,7 +956,19 @@ class Panel {
 
   async back() {
     const prev = this.history.pop();
-    if (prev) await this.go(prev, false);
+    if (!prev) return;
+    const from = this.path;
+    // se a pasta anterior não abrir mais, o histórico não é perdido nem o "avançar" alterado
+    if (await this.go(prev, false)) this.forward.push(from);
+    else this.history.push(prev);
+  }
+
+  async goForward() {
+    const next = this.forward.pop();
+    if (!next) return;
+    const from = this.path;
+    if (await this.go(next, false)) this.history.push(from);
+    else this.forward.push(next);
   }
 
   quickJump(prefix) {
@@ -1592,6 +1613,7 @@ async function showHelp() {
     ['↑ ↓ PgUp PgDn Home End', 'Mover cursor'],
     ['Enter', 'Abrir pasta / arquivo'],
     ['Backspace', 'Subir um nível'],
+    ['Alt+← / Alt+→', 'Voltar / avançar no histórico de pastas do painel'],
     ['Alt+←', 'Voltar no histórico'],
     ['Insert / Espaço', 'Marcar item'],
     ['Ctrl+A / Ctrl+D', 'Marcar tudo / desmarcar'],
@@ -1725,6 +1747,7 @@ document.addEventListener('keydown', (e) => {
   else if (e.ctrlKey && k.toLowerCase() === 'x') run(() => opClipboard(true));
   else if (e.ctrlKey && k.toLowerCase() === 'v') run(opPaste);
   else if (e.altKey && k === 'ArrowLeft') run(() => p.back());
+  else if (e.altKey && k === 'ArrowRight') run(() => p.goForward());
   else if (e.ctrlKey && e.altKey && /^Digit[1-9]$/.test(e.code)) {
     const l = LAYOUTS[Number(e.code.slice(5)) - 1];
     if (l) run(() => applyLayout(l.id));

@@ -82,7 +82,7 @@ O layout e as proporções são lembrados. F5/F6 usam o próximo painel como des
 
 ## Atalhos de lugar
 
-Cada painel tem os botões **Área de Trabalho** e **Meu Computador** (lista as unidades com capacidade e espaço livre;
+Cada painel tem os botões **Área de Trabalho**, **Downloads** e **Meu Computador** (lista as unidades com capacidade e espaço livre;
 Backspace na raiz de uma unidade também leva até lá). Em "Meu Computador" copiar, excluir, criar e renomear ficam bloqueados.
 
 ## Renomeação em massa (Ctrl+M, botão na barra ou F2 com 2+ itens marcados)
@@ -110,6 +110,7 @@ botões `+` e `×` nas abas. As abas e a ordenação são lembradas ao reabrir o
 |---|---|
 | Tab | Alternar painel |
 | Enter / Backspace | Abrir / subir um nível |
+| Alt+← / Alt+→ | Voltar / avançar no histórico de pastas (cada aba tem o seu) |
 | Insert, Espaço | Marcar item |
 | Ctrl+A / Ctrl+D / `*` | Marcar tudo / desmarcar / inverter |
 | F2 | Renomear |
