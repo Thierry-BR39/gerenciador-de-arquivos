@@ -443,6 +443,8 @@ class Panel {
     this.forward = []; // pastas à frente, depois de voltar (Alt+→)
     this.rowHeight = 22;
     this.view = 'details'; // 'details' | 'medium' | 'large' (ícones/miniaturas)
+    // faixa de seleção com Shift (teclado ou clique): { anchor: índice onde começou, base: marcas anteriores }
+    this.range = null;
     this.io = null; // IntersectionObserver das miniaturas
 
     // Ctrl + roda do mouse: aumenta/diminui os ícones, como no Explorer
@@ -531,9 +533,9 @@ class Panel {
       if (plain && !this.selected.has(entry.name)) this.selected.clear();
       if (e.ctrlKey) this.toggleSelect(idx, false);
       else if (e.shiftKey) {
-        const [a, b] = anchor < idx ? [anchor, idx] : [idx, anchor];
-        for (let i = a; i <= b; i++) this.selected.add(this.entries[i].name);
-      }
+        this.range ||= { anchor, base: new Set(this.selected) };
+        this.selected = this.rangeSelection(idx);
+      } else this.range = null;
       this.render();
 
       // duplo clique abre qualquer item; clique único (se ativado) abre apenas pastas
@@ -811,6 +813,7 @@ class Panel {
   }
 
   applySort() {
+    this.range = null; // os índices mudam com a ordenação, filtro ou recarga
     const k = this.sortKey;
     const dir = this.sortDir;
     const list = (this.raw || []).filter(
@@ -891,15 +894,30 @@ class Panel {
   toggleSelect(idx, advance = true) {
     const e = this.entries[idx];
     if (!e) return;
+    this.range = null;
     if (this.selected.has(e.name)) this.selected.delete(e.name);
     else this.selected.add(e.name);
     if (advance) this.moveCursor(1);
   }
 
-  moveCursor(delta, absolute = false) {
+  // Marcas anteriores + todos os itens entre a âncora da faixa e o índice `to` (inclusive os dois extremos)
+  rangeSelection(to) {
+    const { anchor, base } = this.range;
+    const [a, b] = anchor <= to ? [anchor, to] : [to, anchor];
+    const sel = new Set(base);
+    for (let i = a; i <= b; i++) sel.add(this.entries[i].name);
+    return sel;
+  }
+
+  // extend (Shift): a faixa nasce no item que estava em foco e acompanha o cursor, crescendo ou encolhendo.
+  // Qualquer movimento sem Shift encerra a faixa; a próxima começa de onde o cursor estiver.
+  moveCursor(delta, absolute = false, extend = false) {
     if (!this.entries.length) return;
+    if (extend) this.range ||= { anchor: this.cursor, base: new Set(this.selected) };
+    else this.range = null;
     const n = absolute ? delta : this.cursor + delta;
     this.cursor = Math.max(0, Math.min(this.entries.length - 1, n));
+    if (extend) this.selected = this.rangeSelection(this.cursor);
     this.render();
     this.scrollToCursor();
   }
@@ -1616,6 +1634,7 @@ async function showHelp() {
     ['Alt+← / Alt+→', 'Voltar / avançar no histórico de pastas do painel'],
     ['Alt+←', 'Voltar no histórico'],
     ['Insert / Espaço', 'Marcar item'],
+    ['Shift + ↑ ↓ (PgUp, PgDn, Home, End)', 'Seleciona uma faixa de itens a partir do que está em foco; voltar o cursor encolhe a faixa'],
     ['Ctrl+A / Ctrl+D', 'Marcar tudo / desmarcar'],
     ['Numpad * / Ctrl+I', 'Inverter seleção'],
     ['F2 / Shift+F6', 'Renomear (com 2+ itens marcados: renomeação em massa)'],
@@ -1775,12 +1794,15 @@ document.addEventListener('keydown', (e) => {
     p.pathEl.focus();
     p.pathEl.select();
   } else if (e.ctrlKey && k.toLowerCase() === 'a') {
+    p.range = null;
     p.entries.forEach((en) => p.selected.add(en.name));
     p.render();
   } else if (e.ctrlKey && k.toLowerCase() === 'd') {
+    p.range = null;
     p.selected.clear();
     p.render();
   } else if ((e.ctrlKey && k.toLowerCase() === 'i') || k === '*') {
+    p.range = null;
     p.entries.forEach((en) => (p.selected.has(en.name) ? p.selected.delete(en.name) : p.selected.add(en.name)));
     p.render();
   } else if (e.shiftKey && k === 'F6') run(actions.rename);
@@ -1795,28 +1817,28 @@ document.addEventListener('keydown', (e) => {
         if (p.filter) p.clearFilter();
         break;
       case 'ArrowDown':
-        p.moveCursor(p.cols());
+        p.moveCursor(p.cols(), false, e.shiftKey);
         break;
       case 'ArrowUp':
-        p.moveCursor(-p.cols());
+        p.moveCursor(-p.cols(), false, e.shiftKey);
         break;
       case 'ArrowRight':
-        if (p.view !== 'details') p.moveCursor(1);
+        if (p.view !== 'details') p.moveCursor(1, false, e.shiftKey);
         break;
       case 'ArrowLeft':
-        if (p.view !== 'details') p.moveCursor(-1);
+        if (p.view !== 'details') p.moveCursor(-1, false, e.shiftKey);
         break;
       case 'PageDown':
-        p.moveCursor(p.pageSize());
+        p.moveCursor(p.pageSize(), false, e.shiftKey);
         break;
       case 'PageUp':
-        p.moveCursor(-p.pageSize());
+        p.moveCursor(-p.pageSize(), false, e.shiftKey);
         break;
       case 'Home':
-        p.moveCursor(0, true);
+        p.moveCursor(0, true, e.shiftKey);
         break;
       case 'End':
-        p.moveCursor(p.entries.length - 1, true);
+        p.moveCursor(p.entries.length - 1, true, e.shiftKey);
         break;
       case 'Enter':
         run(() => p.enter());
@@ -1953,6 +1975,7 @@ const MARQUEE_THRESHOLD = 4;
 const MARQUEE_EDGE = 24;
 
 function startMarquee(panel, e) {
+  panel.range = null;
   const r = panel.listEl.getBoundingClientRect();
   marquee = {
     panel,

@@ -133,6 +133,7 @@ botões `+` e `×` nas abas. As abas e a ordenação são lembradas ao reabrir o
 | Enter / Backspace | Abrir / subir um nível |
 | Alt+← / Alt+→ | Voltar / avançar no histórico de pastas (cada aba tem o seu) |
 | Insert, Espaço | Marcar item |
+| Shift + ↑ ↓ (também PgUp, PgDn, Home, End; ← → nos ícones) | Seleciona uma faixa de itens a partir do que está em foco; voltar o cursor encolhe a faixa. Marcas feitas antes continuam. Shift+clique segue a mesma regra |
 | Ctrl+A / Ctrl+D / `*` | Marcar tudo / desmarcar / inverter |
 | F2 | Renomear |
 | F3 / F4 | Visualizar / editar texto (até 1 MB) |
