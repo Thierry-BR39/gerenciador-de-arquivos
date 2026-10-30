@@ -35,8 +35,12 @@ async function main() {
     overwrite: true,
     asar: true,
     prune: true,
-    // fora do pacote: scripts de build, ícones-fonte, documentação e artefatos locais
-    ignore: [/^\/scripts($|\/)/, /^\/build($|\/)/, /^\/README\.md$/, /^\/\.claude($|\/)/, /^\/dist($|\/)/, /\.lnk$/],
+    // Lista de permissão: só o que o app precisa em tempo de execução entra no pacote. (Uma lista de
+    // exclusão deixava passar pastas novas, como versoes/ com os zips das Releases: +300 MB no app.asar.)
+    ignore: (p) =>
+      p !== '' &&
+      (!/^\/(package\.json|LICENSE|src|node_modules)($|\/)/.test(p) || // fora da lista
+        /^\/node_modules\/(\.bin|\.package-lock\.json)($|\/)/.test(p)), // restos de ferramentas de build
     appCopyright: 'Calçados Beira Rio',
   });
 
