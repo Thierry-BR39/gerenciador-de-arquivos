@@ -186,6 +186,25 @@ function storeJson(key, value) {
 const settings = { singleClick: loadJson('fm.settings', {}).singleClick === true };
 let sessionReady = false;
 
+// Ordenação lembrada por pasta (chave: caminho em minúsculas). Pasta sem registro usa nome crescente.
+const folderSorts = loadJson('fm.sorts', {});
+const SORTS_MAX = 500;
+const sortKeyOf = (p) => p.replace(/[\\/]+$/, '').toLowerCase();
+
+function sortFor(path) {
+  const s = folderSorts[sortKeyOf(path)];
+  return s ? { key: s.key, dir: s.dir } : { key: 'name', dir: 1 };
+}
+
+function saveSortFor(path, key, dir) {
+  const k = sortKeyOf(path);
+  delete folderSorts[k]; // reinsere no fim: os mais antigos saem primeiro quando passar do limite
+  if (key !== 'name' || dir !== 1) folderSorts[k] = { key, dir };
+  const keys = Object.keys(folderSorts);
+  for (const old of keys.slice(0, Math.max(0, keys.length - SORTS_MAX))) delete folderSorts[old];
+  storeJson('fm.sorts', folderSorts);
+}
+
 function saveSession() {
   if (!sessionReady) return;
   storeJson('fm.session', { panels: panels.map((p) => (p.inited ? p.snapshot() : null)) });
@@ -441,6 +460,7 @@ class Panel {
     this.showHidden = false;
     this.history = []; // pastas anteriores (Alt+←)
     this.forward = []; // pastas à frente, depois de voltar (Alt+→)
+    this.focusMem = new Map(); // pasta (minúsculas) → nome do item que estava em foco ao sair dela
     this.rowHeight = 22;
     this.view = 'details'; // 'details' | 'medium' | 'large' (ícones/miniaturas)
     // faixa de seleção com Shift (teclado ou clique): { anchor: índice onde começou, base: marcas anteriores }
@@ -653,7 +673,11 @@ class Panel {
       this.history.push(this.path);
       this.forward = []; // navegar para uma pasta nova descarta o "avançar"
     }
+    if (this.path && this.current()) this.focusMem.set(sortKeyOf(this.path), this.current().name);
     this.path = target;
+    const sort = sortFor(target);
+    this.sortKey = sort.key;
+    this.sortDir = sort.dir;
     this.raw = res.entries;
     this.filterEl.value = ''; // o filtro vale só para a pasta em que foi aberto
     this.filterEl.hidden = true;
@@ -669,7 +693,9 @@ class Panel {
     this.pathEl.value = displayPath(this.path);
     this.markDrive();
     this.renderTabs();
+    this.updateSortHeaders();
     this.render();
+    if (focusName) this.scrollToCursor();
     return true;
   }
 
@@ -680,6 +706,7 @@ class Panel {
       path: this.path,
       history: this.history,
       forward: this.forward,
+      focusMem: this.focusMem,
       sortKey: this.sortKey,
       sortDir: this.sortDir,
       showHidden: this.showHidden,
@@ -740,10 +767,11 @@ class Panel {
   // ou já em `path` quando informado. Não há limite de abas.
   async newTab(path) {
     this.saveTab();
-    this.tabs.splice(this.tabIdx + 1, 0, { ...this.tabs[this.tabIdx], history: [], forward: [] });
+    this.tabs.splice(this.tabIdx + 1, 0, { ...this.tabs[this.tabIdx], history: [], forward: [], focusMem: new Map() });
     this.tabIdx++;
     this.history = [];
     this.forward = [];
+    this.focusMem = new Map();
     if (path && path !== this.path) await this.go(path, false);
     this.renderTabs();
     this.listEl.focus();
@@ -767,6 +795,7 @@ class Panel {
     if (active === this) updateViewPicker();
     this.history = t.history;
     this.forward = t.forward || [];
+    this.focusMem = t.focusMem || new Map();
     this.path = '';
     // se a pasta da aba não existir mais, sobe até uma que exista
     let target = t.path;
@@ -867,12 +896,21 @@ class Panel {
     this.listEl.focus();
   }
 
+  // seta ▲/▼ na coluna pela qual a pasta atual está ordenada (ver CSS [data-sort])
+  updateSortHeaders() {
+    this.el.querySelectorAll('.colheads [data-key]').forEach((h) => {
+      h.dataset.sort = h.dataset.key === this.sortKey ? (this.sortDir === 1 ? 'asc' : 'desc') : '';
+    });
+  }
+
   setSort(key) {
     if (this.sortKey === key) this.sortDir = -this.sortDir;
     else {
       this.sortKey = key;
       this.sortDir = 1;
     }
+    saveSortFor(this.path, this.sortKey, this.sortDir);
+    this.updateSortHeaders();
     const name = this.current()?.name;
     this.applySort();
     const i = this.entries.findIndex((e) => e.name === name);
@@ -977,7 +1015,7 @@ class Panel {
     if (!prev) return;
     const from = this.path;
     // se a pasta anterior não abrir mais, o histórico não é perdido nem o "avançar" alterado
-    if (await this.go(prev, false)) this.forward.push(from);
+    if (await this.go(prev, false, this.focusMem.get(sortKeyOf(prev)))) this.forward.push(from);
     else this.history.push(prev);
   }
 
@@ -985,7 +1023,7 @@ class Panel {
     const next = this.forward.pop();
     if (!next) return;
     const from = this.path;
-    if (await this.go(next, false)) this.history.push(from);
+    if (await this.go(next, false, this.focusMem.get(sortKeyOf(next)))) this.history.push(from);
     else this.forward.push(next);
   }
 
@@ -1631,7 +1669,8 @@ async function showHelp() {
     ['↑ ↓ PgUp PgDn Home End', 'Mover cursor'],
     ['Enter', 'Abrir pasta / arquivo'],
     ['Backspace', 'Subir um nível'],
-    ['Alt+← / Alt+→', 'Voltar / avançar no histórico de pastas do painel'],
+    ['Alt+← / Alt+→', 'Voltar / avançar no histórico de pastas do painel (o foco volta ao item em que você estava)'],
+    ['Clique no cabeçalho da coluna', 'Ordena a pasta atual; a ordem é lembrada para cada pasta'],
     ['Alt+←', 'Voltar no histórico'],
     ['Insert / Espaço', 'Marcar item'],
     ['Shift + ↑ ↓ (PgUp, PgDn, Home, End)', 'Seleciona uma faixa de itens a partir do que está em foco; voltar o cursor encolhe a faixa'],

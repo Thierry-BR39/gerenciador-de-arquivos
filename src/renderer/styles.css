@@ -353,3 +353,9 @@ body.dragging-files.no-drop, body.dragging-files.no-drop * { cursor: not-allowed
 }
 ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
 ::-webkit-scrollbar-corner { background: var(--c-black); }
+
+/* seta de ordenação no cabeçalho */
+.colheads [data-sort="asc"]::after { content: ' ▲'; color: var(--accent); font-size: 10px; }
+.colheads [data-sort="desc"]::after { content: ' ▼'; color: var(--accent); font-size: 10px; }
+.colheads [data-sort] { color: var(--c-white); }
+.colheads [data-sort=""] { color: inherit; }

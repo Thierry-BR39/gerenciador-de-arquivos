@@ -131,7 +131,8 @@ botões `+` e `×` nas abas. As abas e a ordenação são lembradas ao reabrir o
 |---|---|
 | Tab | Alternar painel |
 | Enter / Backspace | Abrir / subir um nível |
-| Alt+← / Alt+→ | Voltar / avançar no histórico de pastas (cada aba tem o seu) |
+| Alt+← / Alt+→ | Voltar / avançar no histórico de pastas (cada aba tem o seu); o foco volta ao item em que você estava naquela pasta |
+| Clique no cabeçalho da coluna | Ordena a pasta atual por nome, extensão, tamanho ou data (▲/▼); **a ordem é lembrada para cada pasta**, em qualquer painel ou aba, inclusive depois de fechar o app |
 | Insert, Espaço | Marcar item |
 | Shift + ↑ ↓ (também PgUp, PgDn, Home, End; ← → nos ícones) | Seleciona uma faixa de itens a partir do que está em foco; voltar o cursor encolhe a faixa. Marcas feitas antes continuam. Shift+clique segue a mesma regra |
 | Ctrl+A / Ctrl+D / `*` | Marcar tudo / desmarcar / inverter |
